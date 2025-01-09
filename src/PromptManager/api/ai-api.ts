@@ -1,4 +1,6 @@
-export async function getAiAnswer(request: string): Promise<string> {
+import {AiAnswer} from "@app/PromptManager/api/types.ts";
+
+export async function getAiAnswer(request: string): Promise<AiAnswer> {
     const response = await fetch('http://localhost:9090/ai/message', {
         method: 'POST',
         headers: {

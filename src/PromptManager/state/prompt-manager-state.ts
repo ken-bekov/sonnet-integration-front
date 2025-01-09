@@ -1,5 +1,5 @@
 import {action, observable, toJS} from "mobx";
-import {AiQueryTemplate, Minion} from "../api/types.ts";
+import {AiAnswer, AiQueryTemplate, Minion} from "../api/types.ts";
 import {generateRequest, loadTemplate, saveTemplate} from "../api/template-api.ts";
 import {AsyncResult, toAsyncResult} from "../../common/async-utils.ts";
 import {loadMinionsByAgentId} from "../api/structure-api.ts";
@@ -16,7 +16,7 @@ export class PromptManagerState {
     @observable accessor queryTemplate = new AsyncResult<AiQueryTemplate>();
     @observable accessor minions = new AsyncResult<Minion[]>();
     @observable accessor generatedRequest: AsyncResult<string> | null = null;
-    @observable accessor aiAnswer: AsyncResult<string> | null = null;
+    @observable accessor aiAnswer: AsyncResult<AiAnswer | null> | null = null;
 
     @action
     loadQueryTemplate(agentId: number) {
@@ -60,12 +60,12 @@ export class PromptManagerState {
     }
 
     @action
-    getAiAnswer() {
+    async getAiAnswer() {
         this.aiAnswer = toAsyncResult(async () => {
             if (this.generatedRequest?.value) {
                 return getAiAnswer(this.generatedRequest?.value);
             }
-            return '';
-        })
+            return null;
+        });
     }
 }

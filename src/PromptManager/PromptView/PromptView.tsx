@@ -53,7 +53,7 @@ export const PromptView: FC = observer(() => {
             </div>
             <div className={statusBarStyles}>
                 <Typography color='textSecondary'>
-                    {`количество символов: ${lines.length}`}
+                    {`количество символов: ${text.length}`}
                 </Typography>
             </div>
         </div>

@@ -52,6 +52,14 @@ export interface AiQueryTemplate {
     readonly modified_at?: string;
 }
 
+export interface AiAnswer {
+    text: string;
+    usage: {
+        input_tokens: number;
+        output_tokens: number;
+    }
+}
+
 export enum MinionTypeNames {
     Trend= "Trend",
     Message= "Message",
