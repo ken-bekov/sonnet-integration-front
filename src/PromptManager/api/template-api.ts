@@ -1,7 +1,8 @@
 import {AiQueryTemplate} from "./types.ts";
+import {AI_HOST_URL} from "@app/common/globals.ts";
 
 export const generateRequest = async (templateText: string, context: object = {}) => {
-    const response = await fetch('http://localhost:9090/template/result', {
+    const response = await fetch(`${AI_HOST_URL}/template/result`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -17,7 +18,7 @@ export const generateRequest = async (templateText: string, context: object = {}
 }
 
 export const saveTemplate = async (template: AiQueryTemplate) => {
-    const response = await fetch('http://localhost:9090/template', {
+    const response = await fetch(`${AI_HOST_URL}/template`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -32,7 +33,7 @@ export const saveTemplate = async (template: AiQueryTemplate) => {
 }
 
 export const loadTemplate = async (agentId: number) => {
-    const response = await fetch(`http://localhost:9090/template?agent_id=${agentId}`);
+    const response = await fetch(`${AI_HOST_URL}/template?agent_id=${agentId}`);
     const data = await response.json();
     return (data.templates[0] || {}) as AiQueryTemplate;
 }

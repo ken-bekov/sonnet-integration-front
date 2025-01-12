@@ -1,8 +1,9 @@
 import {Company, Minion} from "./types.ts";
 import {makeAutoObservable} from "mobx";
+import {AI_HOST_URL} from "@app/common/globals.ts";
 
 export const loadCompanies = async (): Promise<Company[]> => {
-    const response = await fetch('http://localhost:9090/structure/tree');
+    const response = await fetch(`${AI_HOST_URL}/structure/tree`);
 
     if (response.ok) {
         const companies = await response.json();
@@ -24,7 +25,7 @@ export const loadCompanies = async (): Promise<Company[]> => {
 }
 
 export const loadMinionsByAgentId = async (agentId: number): Promise<Minion[]> => {
-    const response = await fetch(`http://localhost:9090/structure/agent/${agentId}/minion`);
+    const response = await fetch(`${AI_HOST_URL}/structure/agent/${agentId}/minion`);
     if (response.ok) {
         const body = await response.json();
         return body.result;

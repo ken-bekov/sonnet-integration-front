@@ -1,0 +1,1 @@
+export const AI_HOST_URL = import.meta.env['VITE_API_HOST'] || '';
