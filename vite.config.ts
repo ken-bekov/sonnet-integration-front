@@ -9,7 +9,7 @@ export default defineConfig({
     target: 'es2020',
     supported: {
       decorators: false,
-    }
+    },
   },
   resolve: {
     alias: {

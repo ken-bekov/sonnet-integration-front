@@ -10,24 +10,11 @@ export class AsyncResult<T> {
     @observable accessor value: T | undefined;
     @observable accessor status: AsyncStatus = AsyncStatus.pending;
     @observable accessor error: Error | undefined;
-    
-    @action
-    fromPromise(func: () => Promise<T>) {
-        this.status = AsyncStatus.pending;
-        func()
-            .then(result => {
-                this.status = AsyncStatus.fulfilled;
-                this.value = result;
-            })
-            .catch(error => {
-                this.status = AsyncStatus.rejected;
-                this.error = error;
-            });
-    }
 }
 
 export function toAsyncResult<T>(func: () => Promise<T>): AsyncResult<T> {
     const asyncResult = new AsyncResult<T>();
+    asyncResult.status = AsyncStatus.pending;
     func()
         .then(result => {
             runInAction(() => {
