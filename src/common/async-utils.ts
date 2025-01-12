@@ -1,4 +1,4 @@
-import {action, observable, runInAction} from "mobx";
+import {observable, runInAction} from "mobx";
 
 export enum AsyncStatus {
     pending,

@@ -17,7 +17,7 @@ export const AiResponse: React.FC = observer(() => {
     } = getStyles(useTheme());
 
     if (aiAnswer?.status === AsyncStatus.pending) {
-        return <ProgressScreen text='ожидание ответа...'/>
+        return <ProgressScreen text='ожидание ответа AI...'/>
     }
 
     if (aiAnswer === null) {
@@ -34,10 +34,6 @@ export const AiResponse: React.FC = observer(() => {
 
     const {text, usage} = aiAnswer.value;
     const lines = text.split('\n');
-
-    if (aiAnswer.status === AsyncStatus.pending) {
-        return <ProgressScreen text='ожидание ответа AI'/>
-    }
 
     return (
         <div className={aiResponseStyles}>
