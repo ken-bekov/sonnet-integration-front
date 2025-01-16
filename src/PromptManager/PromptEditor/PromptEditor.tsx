@@ -8,6 +8,7 @@ import {TabNames} from "../state/prompt-manager-state.ts";
 import {getTextAreaStyles, toolbarStyles} from "./PromptEditor.styles.ts";
 import {css} from "@emotion/react";
 import {AsyncStatus} from "../../common/async-utils.ts";
+import dayjs from "dayjs";
 
 const promptEditorStyles = css`
     display: flex;
@@ -37,19 +38,23 @@ export const PromptEditor: FC<PromptEditorProps> = observer((props) => {
         }
     }, [])
 
-    const handleInsert = (minion: Minion, trendName: TrendName) => {
+    const handleInsert = (minion: Minion, trendName: TrendName, fromDate: Date, toDate: Date) => {
         const textArea = textAreaRef.current;
         if (!textArea || !queryTemplate.value) {
             return;
         }
 
         if (minion.type?.name === MinionTypeNames.Trend) {
-            const trendTag = `{{trend ${trendName.id}}}`;
+            const fromDateStr = dayjs(fromDate).format('YYYY-MM-DD');
+            const toDateStr = dayjs(toDate).format('YYYY-MM-DD');
+            const trendTag = `{{trend ${trendName.id} ${fromDateStr} ${toDateStr}}}`;
             const currentPosition = textArea.selectionStart;
             queryTemplate.value.text =
                 templateText.substring(0, currentPosition) + `${trendName.name}\n` +
                 trendTag + templateText.substring(currentPosition, templateText.length);
         }
+
+        setInsertModalOpen(false);
     }
 
     const handleValueChange = (event: ChangeEvent<HTMLTextAreaElement>) => {

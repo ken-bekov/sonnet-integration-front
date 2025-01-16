@@ -12,11 +12,19 @@ import {
 import {css} from "@emotion/css";
 import {Minion, TrendName} from "../../api/types.ts";
 import {AutocompleteChangeReason} from "@mui/material/useAutocomplete/useAutocomplete";
+import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import {Dayjs} from "dayjs";
 
 interface ValueInsertModalProps {
     open: boolean;
     onClose: () => void;
-    onInsert: (minion:Minion, trendName: TrendName) => void;
+    onInsert: (
+        minion:Minion,
+        trendName: TrendName,
+        fromDate: Date,
+        toDate: Date,
+    ) => void;
     minions?: Minion[];
     loading: boolean;
 }
@@ -35,10 +43,17 @@ const progressStyles = css`
     justify-content: center;
 `
 
+const datesContainerStyles = css`
+    display: flex;
+    justify-content: space-between;
+`
+
 export const ValueInsertModal: React.FC<ValueInsertModalProps> = (props) => {
     const { open, onClose, minions, loading, onInsert } = props;
     const [selectedMinion, setSelectedMinion] = useState<Minion | null>(null);
     const [selectedTrendName, setSelectedTrendName] = useState<TrendName | null>(null);
+    const [fromDate, setFromDate] = useState<Dayjs | null>(null);
+    const [toDate, setToDate] = useState<Dayjs | null>(null);
 
     const handleSelectedMinionChange = (
         _: SyntheticEvent,
@@ -63,7 +78,11 @@ export const ValueInsertModal: React.FC<ValueInsertModalProps> = (props) => {
 
     const handleOnInsertClick = () => {
         if (selectedMinion && selectedTrendName) {
-            onInsert(selectedMinion, selectedTrendName);
+            onInsert(
+                selectedMinion,
+                selectedTrendName,
+                fromDate?.toDate() || new Date(),
+                toDate?.toDate() || new Date());
         }
     }
 
@@ -79,6 +98,18 @@ export const ValueInsertModal: React.FC<ValueInsertModalProps> = (props) => {
                     )}
                     {!loading && (
                         <>
+                            <div className={datesContainerStyles}>
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <DatePicker
+                                        value={fromDate}
+                                        onChange={(dayjs) => setFromDate(dayjs)}
+                                    />
+                                    <DatePicker
+                                        value={toDate}
+                                        onChange={(dayjs) => setToDate(dayjs)}
+                                    />
+                                </LocalizationProvider>
+                            </div>
                             <Autocomplete
                                 renderInput={(params) => <TextField {...params} label="Название параметра"/>}
                                 options={minions || []}
