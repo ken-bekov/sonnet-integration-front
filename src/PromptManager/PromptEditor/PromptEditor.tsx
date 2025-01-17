@@ -28,13 +28,13 @@ export const PromptEditor: FC<PromptEditorProps> = observer((props) => {
     const [insertModalOpen, setInsertModalOpen] = useState(false);
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-    const {promptManagerState} = useApplicationState();
+    const {promptManagerState, selectedAgent} = useApplicationState();
     const {queryTemplate, minions, generatedRequest} = promptManagerState;
     const templateText = queryTemplate.value?.text || '';
 
     useEffect(() => {
-        if (!minions.value) {
-            promptManagerState.loadMinions(1);
+        if (!minions.value &&  selectedAgent) {
+            promptManagerState.loadMinions(selectedAgent.id);
         }
     }, [])
 
