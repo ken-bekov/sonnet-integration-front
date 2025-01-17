@@ -47,7 +47,7 @@ export const PromptEditor: FC<PromptEditorProps> = observer((props) => {
         if (minion.type?.name === MinionTypeNames.Trend) {
             const fromDateStr = dayjs(fromDate).format('YYYY-MM-DD');
             const toDateStr = dayjs(toDate).format('YYYY-MM-DD');
-            const trendTag = `{{trend ${trendName.id} ${fromDateStr} ${toDateStr}}}`;
+            const trendTag = `{{trend ${trendName.id} '${fromDateStr}' '${toDateStr}'}}`;
             const currentPosition = textArea.selectionStart;
             queryTemplate.value.text =
                 templateText.substring(0, currentPosition) + `${trendName.name}\n` +
