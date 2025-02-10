@@ -1,7 +1,7 @@
 import {action, observable} from "mobx";
 import {AsyncResult, toAsyncResult} from "@app/common/async-utils.ts";
-import {Company} from "@app/PromptManager/api/types.ts";
-import {loadCompanies} from "@app/PromptManager/api/structure-api.ts";
+import {Company} from "@app/api/types.ts";
+import {loadCompanies} from "@app/api/structure-api.ts";
 
 export class AgentTreeState {
     @observable accessor companies = new AsyncResult<Company []>();

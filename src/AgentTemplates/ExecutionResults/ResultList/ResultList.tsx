@@ -1,5 +1,5 @@
 import React, {SyntheticEvent} from "react";
-import {AiRequest, AiRequestSet} from "@app/PromptManager/api/request-api.ts";
+import {AiRequest, AiRequestSet} from "@app/api/request-api.ts";
 import {RichTreeView, TreeViewBaseItem} from "@mui/x-tree-view";
 import dayjs from "dayjs";
 

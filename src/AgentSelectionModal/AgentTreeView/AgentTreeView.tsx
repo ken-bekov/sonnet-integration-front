@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {RichTreeView, TreeViewBaseItem} from "@mui/x-tree-view";
-import {Agent, Branch, Company, Factory} from "@app/PromptManager/api/types.ts";
+import {Agent, Branch, Company, Factory} from "@app/api/types.ts";
 import {css} from "@emotion/css";
 import {useApplicationState} from "@app/state/application-state.ts";
 import {AsyncResultStatus} from "@app/common/async-utils.ts";

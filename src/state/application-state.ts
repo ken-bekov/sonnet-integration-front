@@ -1,7 +1,7 @@
 import {AgentTreeState} from "@app/AgentSelectionModal/AgentTreeView/state/agent-tree-state.ts";
 import {MessageStackState} from "@app/common/MessageStack/state/message-stack-state.ts";
 import {action, observable} from "mobx";
-import {Agent} from "@app/PromptManager/api/types.ts";
+import {Agent} from "@app/api/types.ts";
 
 export class ApplicationState {
     public agentTreeState = new AgentTreeState();

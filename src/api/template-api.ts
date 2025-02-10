@@ -1,11 +1,6 @@
 import {AiQueryTemplate} from "./types.ts";
 import {AI_HOST_URL} from "@app/common/globals.ts";
 
-interface PromptTemplate {
-    name: string;
-    text: string;
-}
-
 export const createNewTemplateForAgent = async (template: AiQueryTemplate) => {
     const response = await fetch(`${AI_HOST_URL}/template`, {
         method: "POST",
@@ -29,22 +24,6 @@ export const deleteTemplate = async (templateId: number) => {
     if (!response.ok) {
         throw new Error(`Error on deleting template: ${response.status}: ${response.statusText}`);
     }
-}
-
-export const generateRequest = async (templates: PromptTemplate[], context: object = {}) => {
-    const response = await fetch(`${AI_HOST_URL}/template/result`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                template: templateText,
-                context,
-            }),
-        }
-    );
-    const data = await response.json();
-    return data.result;
 }
 
 export const saveTemplate = async (template: AiQueryTemplate) => {

@@ -1,9 +1,9 @@
 import React from "react";
-import {useStyles} from "@app/PromptManager/PromptList/PromptList.styles.ts";
+import {useStyles} from "./PromptList.styles.ts";
 import {Button, IconButton, List, ListItemButton, Tooltip} from "@mui/material";
 import {Delete} from "@mui/icons-material";
 import {observer} from "mobx-react-lite";
-import {PromptEditorState} from "@app/PromptEditor/prompt-editor-state.ts";
+import {PromptEditorState} from "@app/AgentTemplates/PromptEditor/prompt-editor-state.ts";
 
 interface PromptListProps {
     state: PromptEditorState;

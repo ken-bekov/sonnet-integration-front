@@ -9,7 +9,7 @@ import {
     ListItemButton
 } from "@mui/material";
 import React from "react";
-import {AiQueryTemplate} from "@app/PromptManager/api/types.ts";
+import {AiQueryTemplate} from "@app/api/types.ts";
 import {useStyles} from "./TemplateListModal.styles";
 
 interface TemplateListModalProps extends DialogProps {

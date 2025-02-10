@@ -1,4 +1,4 @@
-import {AiAnswer} from "@app/PromptManager/api/types.ts";
+import {AiAnswer} from "@app/api/types.ts";
 import {AI_HOST_URL} from "@app/common/globals.ts";
 
 export async function getAiAnswer(request: string): Promise<AiAnswer> {

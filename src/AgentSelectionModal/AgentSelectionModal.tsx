@@ -2,7 +2,7 @@ import React, {useState} from "react";
 import {Button, Dialog, DialogActions, DialogContent, DialogProps, DialogTitle} from "@mui/material";
 import {AgentTreeView} from "@app/AgentSelectionModal/AgentTreeView/AgentTreeView.tsx";
 import {treeContainerStyles} from "@app/AgentSelectionModal/AgentSelectionModal.styles.ts";
-import {Agent} from "@app/PromptManager/api/types.ts";
+import {Agent} from "@app/api/types.ts";
 import {useNavigate} from "react-router";
 
 export const AgentSelectionModal: React.FC<DialogProps> = (props) => {

@@ -1,7 +1,7 @@
 import {action, observable} from "mobx";
 import {AsyncResult, toAsyncResult} from "@app/common/async-utils.ts";
-import {AiRequest, AiRequestSet, loadAiRequestSets} from "@app/PromptManager/api/request-api.ts";
-import {Agent} from "@app/PromptManager/api/types.ts";
+import {AiRequest, AiRequestSet, loadAiRequestSets} from "@app/api/request-api.ts";
+import {Agent} from "@app/api/types.ts";
 
 export class ExecutionResultsState {
     @observable accessor requestSets = new AsyncResult<AiRequestSet[]>();

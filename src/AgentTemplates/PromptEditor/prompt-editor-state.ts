@@ -1,14 +1,14 @@
 import {action, computed, observable} from "mobx";
 import {AsyncResult, toAsyncResult} from "@app/common/async-utils.ts";
-import {Agent, AiQueryTemplate, Minion} from "@app/PromptManager/api/types.ts";
+import {Agent, AiQueryTemplate, Minion} from "@app/api/types.ts";
 import {
     createNewTemplateForAgent,
     deleteTemplate,
     loadTemplates,
     saveTemplate
-} from "@app/PromptManager/api/template-api.ts";
-import {runQuerySet} from "@app/PromptManager/api/request-api.ts";
-import {loadMinionsByAgentId} from "@app/PromptManager/api/structure-api.ts";
+} from "@app/api/template-api.ts";
+import {runQuerySet} from "@app/api/request-api.ts";
+import {loadMinionsByAgentId} from "@app/api/structure-api.ts";
 
 export class PromptEditorState {
     @observable accessor templates = new AsyncResult<AiQueryTemplate[]>();

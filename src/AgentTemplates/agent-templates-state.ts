@@ -1,7 +1,7 @@
 import {action, computed, observable} from "mobx";
 import {AsyncResult, toAsyncResult} from "@app/common/async-utils.ts";
-import {Agent} from "@app/PromptManager/api/types.ts";
-import {loadAgent} from "@app/PromptManager/api/structure-api";
+import {Agent} from "@app/api/types.ts";
+import {loadAgent} from "@app/api/structure-api";
 import {PromptEditorState} from "@app/AgentTemplates/PromptEditor/prompt-editor-state.ts";
 import {ExecutionResultsState} from "@app/AgentTemplates/ExecutionResults/execution-results-state.ts";
 

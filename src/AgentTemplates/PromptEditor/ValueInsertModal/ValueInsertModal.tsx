@@ -10,7 +10,7 @@ import {
     TextField
 } from "@mui/material";
 import {css} from "@emotion/css";
-import {Minion, TrendName} from "../../api/types.ts";
+import {Minion, TrendName} from "@app/api/types.ts";
 import {AutocompleteChangeReason} from "@mui/material/useAutocomplete/useAutocomplete";
 import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";

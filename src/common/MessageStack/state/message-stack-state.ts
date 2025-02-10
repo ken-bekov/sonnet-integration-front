@@ -1,5 +1,5 @@
 import {action, observable} from "mobx";
-import {Agent} from "@app/PromptManager/api/types.ts";
+import {Agent} from "@app/api/types.ts";
 import {AlertColor} from "@mui/material/Alert/Alert";
 
 interface StackedMessage {
