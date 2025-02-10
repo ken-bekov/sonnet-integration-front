@@ -48,6 +48,7 @@ export interface Minion {
 export interface AiQueryTemplate {
     id?: number;
     agent_id: number;
+    name: string;
     text: string;
     readonly modified_at?: string;
 }

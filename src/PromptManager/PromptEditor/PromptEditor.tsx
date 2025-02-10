@@ -3,12 +3,12 @@ import {Button, useTheme} from "@mui/material";
 import {ValueInsertModal} from "./ValueInsertModal/ValueInsertModal.tsx";
 import {Minion, MinionTypeNames, TrendName} from "../api/types.ts";
 import {observer} from "mobx-react-lite";
-import {useApplicationState} from "../../state/application-state.ts";
-import {TabNames} from "../state/prompt-manager-state.ts";
+import {PromptManagerState} from "../state/prompt-manager-state.ts";
 import {getTextAreaStyles, toolbarStyles} from "./PromptEditor.styles.ts";
 import {css} from "@emotion/react";
-import {AsyncStatus} from "../../common/async-utils.ts";
+import {AsyncResultStatus} from "../../common/async-utils.ts";
 import dayjs from "dayjs";
+import {runQuerySet} from "@app/PromptManager/api/request-api.ts";
 
 const promptEditorStyles = css`
     display: flex;
@@ -20,27 +20,26 @@ const promptEditorStyles = css`
 
 interface PromptEditorProps {
     commonTools: JSX.Element;
+    state: PromptManagerState;
 }
 
 export const PromptEditor: FC<PromptEditorProps> = observer((props) => {
-    const {commonTools} = props;
+    const {commonTools, state} = props;
     const theme = useTheme();
     const [insertModalOpen, setInsertModalOpen] = useState(false);
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-    const {promptManagerState, selectedAgent} = useApplicationState();
-    const {queryTemplate, minions, generatedRequest} = promptManagerState;
-    const templateText = queryTemplate.value?.text || '';
+    const {queryTemplates, minions, generatedRequest} = state;
 
     useEffect(() => {
-        if (!minions.value &&  selectedAgent) {
+        if (!minions.value &&  state.id) {
             promptManagerState.loadMinions(selectedAgent.id);
         }
     }, [])
 
     const handleInsert = (minion: Minion, trendName: TrendName, fromDate: Date, toDate: Date) => {
         const textArea = textAreaRef.current;
-        if (!textArea || !queryTemplate.value) {
+        if (!textArea || !state.selectedTemplate) {
             return;
         }
 
@@ -49,7 +48,8 @@ export const PromptEditor: FC<PromptEditorProps> = observer((props) => {
             const toDateStr = dayjs(toDate).format('YYYY-MM-DD');
             const trendTag = `{{trend ${trendName.id} '${fromDateStr}' '${toDateStr}'}}`;
             const currentPosition = textArea.selectionStart;
-            queryTemplate.value.text =
+            const templateText = state.selectedTemplate.text;
+            state.selectedTemplate.text =
                 templateText.substring(0, currentPosition) + `${trendName.name}\n` +
                 trendTag + templateText.substring(currentPosition, templateText.length);
         }
@@ -58,14 +58,13 @@ export const PromptEditor: FC<PromptEditorProps> = observer((props) => {
     }
 
     const handleValueChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-        if (queryTemplate.value) {
-            queryTemplate.value.text = event.target.value;
+        if (state.selectedTemplate) {
+            state.selectedTemplate.text = event.target.value;
         }
     }
 
     const handleGenerateClick = () => {
-        promptManagerState.currentTab = TabNames.prompt;
-        promptManagerState.generateRequest();
+        (async () => { await runQuerySet()})();
     }
 
     return (
@@ -81,7 +80,7 @@ export const PromptEditor: FC<PromptEditorProps> = observer((props) => {
                 </Button>
                 <Button
                     onClick={handleGenerateClick}
-                    disabled={generatedRequest?.status === AsyncStatus.pending}
+                    disabled={generatedRequest?.status === AsyncResultStatus.pending}
                 >
                     Сформировать
                 </Button>
@@ -90,7 +89,7 @@ export const PromptEditor: FC<PromptEditorProps> = observer((props) => {
                 ref={textAreaRef}
                 className={getTextAreaStyles(theme)}
                 onChange={handleValueChange}
-                value={templateText}
+                value={state.selectedTemplate?.text}
             />
             <ValueInsertModal
                 loading={!minions}

@@ -1,6 +1,6 @@
 import React from "react";
 import {useApplicationState} from "../../state/application-state.ts";
-import {AsyncStatus} from "../../common/async-utils.ts";
+import {AsyncResultStatus} from "../../common/async-utils.ts";
 import {ProgressScreen} from "../../common/ProgressScreen/ProgressScreen.tsx";
 import {getStyles} from "./AiResponse.styles.ts";
 import {observer} from "mobx-react-lite";
@@ -16,7 +16,7 @@ export const AiResponse: React.FC = observer(() => {
         textContainerStyles
     } = getStyles(useTheme());
 
-    if (aiAnswer?.status === AsyncStatus.pending) {
+    if (aiAnswer?.status === AsyncResultStatus.pending) {
         return <ProgressScreen text='ожидание ответа AI...'/>
     }
 

@@ -1,7 +1,7 @@
 import {FC} from "react";
 import {Button, Typography, useTheme} from "@mui/material";
 import {useApplicationState} from "../../state/application-state.ts";
-import {AsyncStatus} from "../../common/async-utils.ts";
+import {AsyncResultStatus} from "../../common/async-utils.ts";
 import {observer} from "mobx-react-lite";
 import {getStyles} from "./PromptView.styles.ts";
 import {TabNames} from "../state/prompt-manager-state.ts";
@@ -33,7 +33,7 @@ export const PromptView: FC = observer(() => {
         }/>
     }
 
-    if (generatedRequest.status === AsyncStatus.pending) {
+    if (generatedRequest.status === AsyncResultStatus.pending) {
         return <ProgressScreen text='формирование промпта'/>
     }
 

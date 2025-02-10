@@ -1,61 +1,142 @@
-import {action, observable, toJS} from "mobx";
-import {AiAnswer, AiQueryTemplate, Minion} from "../api/types.ts";
-import {generateRequest, loadTemplate, saveTemplate} from "../api/template-api.ts";
+import {action, computed, observable, toJS} from "mobx";
+import {Agent, AiAnswer, AiQueryTemplate, Minion} from "../api/types.ts";
+import {
+    createNewTemplateForAgent,
+    deleteTemplate,
+    generateRequest,
+    loadTemplates,
+    saveTemplate
+} from "../api/template-api.ts";
 import {AsyncResult, toAsyncResult} from "../../common/async-utils.ts";
-import {loadMinionsByAgentId} from "../api/structure-api.ts";
+import {loadAgent, loadMinionsByAgentId} from "../api/structure-api.ts";
 import {getAiAnswer} from "../api/ai-api.ts";
 
 export enum TabNames {
     editor,
-    prompt,
-    response,
+    result,
 }
 
 export class PromptManagerState {
     @observable accessor currentTab = TabNames.editor;
-    @observable accessor queryTemplate = new AsyncResult<AiQueryTemplate>();
+    @observable accessor selectedTemplateIndex = -1;
+
+    @observable accessor queryTemplates = new AsyncResult<AiQueryTemplate[]>();
+    @observable accessor agent = new AsyncResult<Agent>();
+
     @observable accessor minions = new AsyncResult<Minion[]>();
     @observable accessor generatedRequest: AsyncResult<string> | null = null;
     @observable accessor aiAnswer: AsyncResult<AiAnswer | null> | null = null;
 
-    @action
-    loadQueryTemplate(agentId: number) {
-        this.queryTemplate = toAsyncResult<AiQueryTemplate>(async () => {
+    @observable accessor isProcessingTemplates = false;
 
-            const loadedTemplate = await loadTemplate(agentId);
-            if (loadedTemplate.id) {
-                return loadedTemplate;
-            }
+    constructor() {
+    }
 
-            return {
-                agent_id: agentId,
-                text: '',
-            };
-        });
-        this.generatedRequest = null;
-        this.aiAnswer = null;
+    private getUniqueTemplateName() {
+        let index = 1;
+        let uniqueName = `Template_${index}`;
+        while (this.queryTemplates.value?.find(template => template.name === uniqueName)) {
+            uniqueName = `Template_${++index}`;
+        }
+        return uniqueName;
+    }
+
+    @computed get selectedTemplate() {
+        return this.queryTemplates.value?.[this.selectedTemplateIndex];
     }
 
     @action
-    loadMinions(agentId: number) {
-        this.minions = toAsyncResult(() => {
-            return loadMinionsByAgentId(agentId)
-        })
+    loadAgent(agentId: number) {
+        toAsyncResult(async () => {
+            return await loadAgent(agentId);
+        }, this.agent);
+    }
+
+    @action
+    loadQueryTemplates() {
+        const agent = this.agent.value;
+        if (!agent?.id) {
+            return;
+        }
+
+        toAsyncResult<AiQueryTemplate[]>(async () => {
+            const loadedTemplates = await loadTemplates(agent.id);
+            if (loadedTemplates) {
+                return loadedTemplates;
+            }
+
+            return [];
+        }, this.queryTemplates);
+    }
+
+    @action
+    loadMinions() {
+        const agent = this.agent.value;
+        if (agent?.id) {
+            this.minions = toAsyncResult(() => {
+                return loadMinionsByAgentId(agent.id)
+            })
+        }
     }
 
     @action
     generateRequest() {
         this.generatedRequest = toAsyncResult(async () => {
-            if (this.queryTemplate.value) {
-                return generateRequest(this.queryTemplate.value.text, {});
+            if (this.queryTemplates.value) {
+                return generateRequest(this.queryTemplates.value.map(template => ({
+                    name: template.name,
+                    text: template.text,
+                })), {});
             }
             return '';
         })
     }
 
-    async saveTemplate() {
-        if (this.queryTemplate.value !== undefined) {
-            return saveTemplate(toJS(this.queryTemplate.value));
+    @action
+    async addNewTemplate() {
+        const agent = this.agent.value;
+        if (!agent?.id) {
+            return;
+        }
+
+        this.isProcessingTemplates = true;
+        try {
+            const uniqueName = this.getUniqueTemplateName();
+            const template: AiQueryTemplate = {
+                agent_id: agent.id,
+                name: uniqueName,
+                text: '',
+            };
+
+            const id = await createNewTemplateForAgent(template);
+            if (id) {
+                template.id = id;
+                this.queryTemplates.value?.push(template);
+            }
+        } finally {
+            this.isProcessingTemplates = false;
+        }
+    }
+
+    async saveTemplate(template: AiQueryTemplate) {
+        if (this.queryTemplates.value !== undefined) {
+            return saveTemplate(toJS(template));
+        }
+    }
+
+    async saveTemplates() {
+        const templates = this.queryTemplates.value;
+        if (!templates) {
+            return;
+        }
+
+        this.isProcessingTemplates = true;
+        try {
+            for(const template of templates) {
+                await saveTemplate(template);
+            }
+        } finally {
+            this.isProcessingTemplates = false;
         }
     }
 
@@ -67,5 +148,20 @@ export class PromptManagerState {
             }
             return null;
         });
+    }
+
+    @action
+    async deleteTemplate(templateId: number) {
+        const agent = this.agent.value;
+        if (!agent?.id) {
+            return;
+        }
+
+        this.isProcessingTemplates = true;
+        try {
+            await deleteTemplate(templateId);
+        } finally {
+            this.isProcessingTemplates = false;
+        }
     }
 }

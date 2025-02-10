@@ -1,34 +1,36 @@
 import {PromptEditor} from "./PromptEditor/PromptEditor.tsx";
-import {Button, CircularProgress, Tab, Tabs, Typography, useTheme} from "@mui/material";
-import {FC, useEffect} from "react";
-import {PromptView} from "./PromptView/PromptView.tsx";
-import {useApplicationState} from "../state/application-state.ts";
+import {Button, CircularProgress} from "@mui/material";
+import {FC, useEffect, useState} from "react";
 import {observer} from "mobx-react-lite";
-import {AsyncStatus} from "../common/async-utils.ts";
-import {AiResponse} from "./AiResponse/AiResponse.tsx";
-import {getHeaderStyles, progressScreenStyle, promptManagerStyle} from "./PromptManager.styles.ts";
-import {TabNames} from "./state/prompt-manager-state.ts";
+import {AsyncResultStatus} from "../common/async-utils.ts";
+import {useStyles} from "./PromptManager.styles.ts";
+import {PromptManagerState, TabNames} from "./state/prompt-manager-state.ts";
+import {PromptList} from "@app/PromptManager/PromptList/PromptList.tsx";
+import {Route, Routes, useNavigate, useParams} from "react-router";
 
 export const PromptManager: FC = observer(() => {
-    const appState = useApplicationState();
-    const {promptManagerState, selectedAgent, messageStackState} = appState;
-    const {queryTemplate, currentTab} = promptManagerState;
-    const theme = useTheme();
+    const {id} = useParams();
+    const [state] = useState(new PromptManagerState());
+    const styles = useStyles();
+    const navigate = useNavigate();
 
     useEffect(() => {
-        if (selectedAgent) {
-            promptManagerState.loadQueryTemplate(selectedAgent.id);
-            promptManagerState.loadMinions(selectedAgent.id);
+        if (id) {
+            state.loadAgent(+id);
         }
-    }, [selectedAgent])
+    }, [state, id]);
+
+    useEffect(() => {
+        if (state.agent.value) {
+            state.loadMinions();
+            state.loadQueryTemplates();
+        }
+    }, [state, state.agent.value])
 
     const handleSaveClick = () => {
         (async () => {
-            try{
-                const id = await promptManagerState.saveTemplate();
-                if (queryTemplate.value) {
-                    queryTemplate.value.id = id;
-                }
+            try {
+                await state.saveTemplates();
                 messageStackState.showMessage({text: 'Изменения сохранены', severity: 'success'});
             } catch (error: unknown) {
                 messageStackState.showMessage({text: (error as Error).message, severity: 'error'});
@@ -37,7 +39,10 @@ export const PromptManager: FC = observer(() => {
     }
 
     const handleTabChange = (_: unknown, tabName: TabNames) => {
-        promptManagerState.currentTab = tabName;
+        state.currentTab = tabName;
+        if (state.agent.value?.id) {
+            navigate(`/results/${state.agent.value.id}`);
+        }
     }
 
     const commonTools = () => (
@@ -48,58 +53,29 @@ export const PromptManager: FC = observer(() => {
         </div>
     )
 
-    if (queryTemplate.status === AsyncStatus.pending) {
+    if (state.agent.status === AsyncResultStatus.pending) {
         return (
-            <div className={progressScreenStyle}>
+            <div className={styles.progressScreen}>
                 <CircularProgress/>
             </div>
         )
     }
 
-    const factory = selectedAgent?.factory;
-    const branch = factory?.branch;
-    const company = branch?.company;
-
     return (
         <>
-            {queryTemplate.value && (
-                <div className={promptManagerStyle}>
-                    <div className={getHeaderStyles(theme)}>
-                        {selectedAgent && (
-                            <>
-                                <Typography color={theme.palette.grey["800"]} fontWeight='500'>
-                                    {selectedAgent.device_name}
-                                </Typography>
-                                {factory && branch && company && (
-                                    <Typography color={theme.palette.grey["700"]} fontSize='0.9rem'>
-                                        {`(${company.name}/${branch.name}/${factory.name})`}
-                                    </Typography>
-                                )}
-                                <Button
-                                    size='small'
-                                    onClick={() => appState.showAgentSelectionDialog = true}
-                                >
-                                    изменить
-                                </Button>
-                            </>
-                        )}
-                    </div>
-                    <Tabs value={currentTab} onChange={handleTabChange}>
-                        <Tab label="Шаблон" value={TabNames.editor}/>
-                        <Tab label="Промпт" value={TabNames.prompt}/>
-                        <Tab label="Ответ" value={TabNames.response}/>
-                    </Tabs>
-                    {currentTab === TabNames.editor && (
-                        <PromptEditor commonTools={commonTools()}/>
-                    )}
-                    {currentTab === TabNames.prompt && (
-                        <PromptView/>
-                    )}
-                    {currentTab === TabNames.response && (
-                        <AiResponse/>
-                    )}
-                </div>
-            )}
+            <div className={styles.content}>
+                <Routes>
+                    <Route path={'/:id/template'} element={
+                        <>
+                            <PromptList state={state}/>
+                            <PromptEditor
+                                commonTools={commonTools()}
+                                state={state}
+                            />
+                        </>
+                    }/>
+                </Routes>
+            </div>
         </>
     )
 })

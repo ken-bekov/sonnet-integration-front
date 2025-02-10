@@ -3,7 +3,7 @@ import {RichTreeView, TreeViewBaseItem} from "@mui/x-tree-view";
 import {Agent, Branch, Company, Factory} from "@app/PromptManager/api/types.ts";
 import {css} from "@emotion/css";
 import {useApplicationState} from "@app/state/application-state.ts";
-import {AsyncStatus} from "@app/common/async-utils.ts";
+import {AsyncResultStatus} from "@app/common/async-utils.ts";
 import {treeViewStyle} from "./AgentTreeView.styles.ts";
 import {observer} from "mobx-react-lite";
 import {ProgressScreen} from "@app/common/ProgressScreen/ProgressScreen.tsx";
@@ -89,7 +89,7 @@ export const AgentTreeView: React.FC<AgentTreeViewProps> = observer((props) => {
         }
     }
 
-    if (companies.status === AsyncStatus.pending) {
+    if (companies.status === AsyncResultStatus.pending) {
         return <ProgressScreen text='загрузка агентов'/>
     }
 

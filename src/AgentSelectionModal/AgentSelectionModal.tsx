@@ -2,14 +2,13 @@ import React, {useState} from "react";
 import {Button, Dialog, DialogActions, DialogContent, DialogProps, DialogTitle} from "@mui/material";
 import {AgentTreeView} from "@app/AgentSelectionModal/AgentTreeView/AgentTreeView.tsx";
 import {treeContainerStyles} from "@app/AgentSelectionModal/AgentSelectionModal.styles.ts";
-import {useApplicationState} from "@app/state/application-state.ts";
 import {Agent} from "@app/PromptManager/api/types.ts";
-import {runInAction} from "mobx";
+import {useNavigate} from "react-router";
 
 export const AgentSelectionModal: React.FC<DialogProps> = (props) => {
-    const appState = useApplicationState();
-    const {selectedAgent} = appState;
     const [agent, setAgent] = useState<Agent | null>(null);
+    const navigate = useNavigate();
+    const {onClose} = props;
 
     return (
         <Dialog {...props}>
@@ -22,21 +21,20 @@ export const AgentSelectionModal: React.FC<DialogProps> = (props) => {
                 </div>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => {
-                    runInAction(() => {
-                        appState.selectedAgent = agent;
-                        appState.showAgentSelectionDialog = false;
-                    })
-                }}>
-                    Выбрать
+                <Button
+                    onClick={() => {
+                        if (agent) {
+                            navigate(`/agent/${agent.id}/edit`);
+                        }
+                        onClose?.({}, 'escapeKeyDown');
+                    }}
+                    disabled={!agent}
+                >
+                    Перейти
                 </Button>
-                {selectedAgent && (
-                    <Button
-                        onClick={() => {appState.showAgentSelectionDialog = false}}
-                    >
-                        Закрыть
-                    </Button>
-                )}
+                <Button onClick={() => onClose?.({}, 'escapeKeyDown')}>
+                    Закрыть
+                </Button>
             </DialogActions>
         </Dialog>
     )

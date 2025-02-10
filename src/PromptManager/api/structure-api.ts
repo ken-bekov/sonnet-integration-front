@@ -1,4 +1,4 @@
-import {Company, Minion} from "./types.ts";
+import {Agent, Company, Minion} from "./types.ts";
 import {makeAutoObservable} from "mobx";
 import {AI_HOST_URL} from "@app/common/globals.ts";
 
@@ -32,4 +32,13 @@ export const loadMinionsByAgentId = async (agentId: number): Promise<Minion[]> =
     }
 
     throw new Error(`Can't load minions for agent with id ${agentId}`);
+}
+
+export const loadAgent = async (agentId: number): Promise<Agent> => {
+    const response = await fetch(`${AI_HOST_URL}/structure/agent/${agentId}`);
+    if (response.ok) {
+        const body = await response.json();
+        return body.agent;
+    }
+    throw new Error(`Can't load agent with id ${agentId}`);
 }
