@@ -39,9 +39,19 @@ export interface MinionType {
     name: string;
 }
 
+export interface Malfunction {
+    id: number;
+    channel: string;
+    type: string;
+    name: string;
+    text: string;
+}
+
 export interface Minion {
     id: number;
     trendNames: TrendName[];
+    dependentMalfunctions: Malfunction[];
+    independentMalfunctions: Malfunction[];
     type: MinionType;
 }
 

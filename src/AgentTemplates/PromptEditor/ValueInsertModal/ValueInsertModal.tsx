@@ -10,7 +10,7 @@ import {
     TextField
 } from "@mui/material";
 import {css} from "@emotion/css";
-import {Minion, TrendName} from "@app/api/types.ts";
+import {Malfunction, Minion, MinionTypeNames, TrendName} from "@app/api/types.ts";
 import {AutocompleteChangeReason} from "@mui/material/useAutocomplete/useAutocomplete";
 import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
@@ -19,9 +19,13 @@ import {Dayjs} from "dayjs";
 interface ValueInsertModalProps {
     open: boolean;
     onClose: () => void;
-    onInsert: (
-        minion:Minion,
+    onTrendInsert: (
         trendName: TrendName,
+        fromDate: Date,
+        toDate: Date,
+    ) => void;
+    onSpectreTrendInsert: (
+        spectreTrend: Malfunction,
         fromDate: Date,
         toDate: Date,
     ) => void;
@@ -48,46 +52,119 @@ const datesContainerStyles = css`
     justify-content: space-between;
 `
 
+interface Metric {
+    id: string;
+    label: string;
+}
+
+interface Channel {
+    id: number;
+    label: string;
+    channel: TrendName | Malfunction;
+}
+
 export const ValueInsertModal: React.FC<ValueInsertModalProps> = (props) => {
-    const { open, onClose, minions, loading, onInsert } = props;
-    const [selectedMinion, setSelectedMinion] = useState<Minion | null>(null);
-    const [selectedTrendName, setSelectedTrendName] = useState<TrendName | null>(null);
+    const {open, onClose, minions, loading, onTrendInsert, onSpectreTrendInsert} = props;
     const [fromDate, setFromDate] = useState<Dayjs | null>(null);
     const [toDate, setToDate] = useState<Dayjs | null>(null);
 
+    const metrics: Metric[] = [
+        {id: 'trends', label: 'Тренды'},
+        {id: 'spectre-trends', label: 'Тренды спектров'},
+    ]
+
+    const [selectedMetric, setSelectedMetric] = useState<Metric | null>(metrics[0]);
+    const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+
     const handleSelectedMinionChange = (
         _: SyntheticEvent,
-        value: Minion | null,
+        value: Metric | null,
         reason: AutocompleteChangeReason
     ) => {
         if (reason === "selectOption") {
-            setSelectedMinion(value);
-            setSelectedTrendName(null);
+            setSelectedMetric(value);
+            setSelectedChannel(null);
         }
     }
 
     const handleSelectedChannelChange = (
         _: SyntheticEvent,
-        value: TrendName | null,
+        value: Channel | null,
         reason: AutocompleteChangeReason
     ) => {
         if (reason === "selectOption") {
-            setSelectedTrendName(value);
+            setSelectedChannel(value);
+        }
+    }
+
+    const getSelectedMinion = () => {
+        if (!minions) {
+            return null;
+        }
+
+        if (
+            selectedMetric?.id === 'trends'
+            || selectedMetric?.id === 'spectre-trends'
+        ) {
+            return  minions.find(minion => minion.type.name === MinionTypeNames.Trend);
         }
     }
 
     const handleOnInsertClick = () => {
-        if (selectedMinion && selectedTrendName) {
-            onInsert(
-                selectedMinion,
-                selectedTrendName,
+        if (selectedMetric?.id === 'trends' && selectedChannel) {
+            onTrendInsert(
+                selectedChannel?.channel as TrendName,
                 fromDate?.toDate() || new Date(),
-                toDate?.toDate() || new Date());
+                toDate?.toDate() || new Date()
+            );
+        }
+
+        if (selectedMetric?.id === 'spectre-trends' && selectedChannel) {
+            onSpectreTrendInsert(
+                selectedChannel?.channel as Malfunction,
+                fromDate?.toDate() || new Date(),
+                toDate?.toDate() || new Date(),
+            );
         }
     }
 
+    const getTrendChannels = (): Channel[] => {
+        const minion = getSelectedMinion();
+        if (minion) {
+            return minion.trendNames.map(trend => ({
+                id: trend.id,
+                label: trend.name,
+                channel: trend,
+            }));
+        }
+        return [];
+    }
+
+
+    const getMalfunctionChannels = (): Channel[] => {
+        const minion = getSelectedMinion();
+        if (minion) {
+            return minion.dependentMalfunctions.map(malfunction => ({
+                id: malfunction.id,
+                label: `${malfunction.text} (${malfunction.channel}: ${malfunction.name})`,
+                channel: malfunction,
+            }));
+        }
+        return [];
+    }
+
+    const getChannels = () => {
+        if (selectedMetric?.id === 'trends') {
+            return getTrendChannels();
+        }
+        if (selectedMetric?.id === 'spectre-trends') {
+            return getMalfunctionChannels();
+        }
+        return [];
+    }
+
     return (
-        <Dialog open={open} onClose={onClose} >
+        <Dialog open={open} onClose={onClose}>
             <DialogTitle>Параметр для вставки</DialogTitle>
             <DialogContent>
                 <div className={contentContainerStyles}>
@@ -112,24 +189,22 @@ export const ValueInsertModal: React.FC<ValueInsertModalProps> = (props) => {
                             </div>
                             <Autocomplete
                                 renderInput={(params) => <TextField {...params} label="Название параметра"/>}
-                                options={minions || []}
-                                getOptionLabel={(option) => option.type.name}
+                                options={metrics}
+                                getOptionLabel={(option) => option.label}
                                 getOptionKey={(option) => option.id}
                                 onChange={handleSelectedMinionChange}
-                                value={selectedMinion}
+                                value={selectedMetric}
                                 size="small"
                             />
-                            {selectedMinion && (
-                                <Autocomplete
-                                    renderInput={(params) => <TextField {...params} label="Название канала"/>}
-                                    options={selectedMinion.trendNames || []}
-                                    getOptionLabel={(option) => option.name}
-                                    getOptionKey={(option) => option.id}
-                                    size="small"
-                                    value={selectedTrendName}
-                                    onChange={handleSelectedChannelChange}
-                                />
-                            )}
+                            <Autocomplete
+                                renderInput={(params) => <TextField {...params} label="Название канала"/>}
+                                options={getChannels() || []}
+                                getOptionLabel={(option) => option.label}
+                                getOptionKey={(option) => option.id}
+                                size="small"
+                                value={selectedChannel}
+                                onChange={handleSelectedChannelChange}
+                            />
                         </>
                     )}
                 </div>

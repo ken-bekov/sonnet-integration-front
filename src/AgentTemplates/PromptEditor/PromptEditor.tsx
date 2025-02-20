@@ -7,8 +7,8 @@ import {PromptList} from "@app/AgentTemplates/PromptEditor/PromptList/PromptList
 import {useStyles} from "./PromptEditor.styles.ts";
 import {Button, Menu, MenuItem} from "@mui/material";
 import {useApplicationState} from "@app/state/application-state.ts";
-import { ValueInsertModal } from "./ValueInsertModal/ValueInsertModal";
-import {AiQueryTemplate, Minion, MinionTypeNames, TrendName} from "@app/api/types.ts";
+import {ValueInsertModal} from "./ValueInsertModal/ValueInsertModal";
+import {AiQueryTemplate, Malfunction, TrendName} from "@app/api/types.ts";
 import dayjs from "dayjs";
 import {KeyboardArrowDown} from '@mui/icons-material';
 import {TemplateListModal} from "@app/AgentTemplates/TemplateListModal/TemplateListModal.tsx";
@@ -67,23 +67,34 @@ export const PromptEditor: React.FC<PromptEditorProps> = observer((props) => {
         })();
     }
 
-    const handleInsert = (minion: Minion, trendName: TrendName, fromDate: Date, toDate: Date) => {
+    const insertTagToCurrentPosition = (tag: string) => {
         const textArea = textAreaRef.current;
         if (!textArea || !state.selectedTemplate) {
             return;
         }
 
-        if (minion.type?.name === MinionTypeNames.Trend) {
-            const fromDateStr = dayjs(fromDate).format('YYYY-MM-DD');
-            const toDateStr = dayjs(toDate).format('YYYY-MM-DD');
-            const trendTag = `{{trend ${trendName.id} '${fromDateStr}' '${toDateStr}'}}`;
-            const currentPosition = textArea.selectionStart;
-            const templateText = state.selectedTemplate.text;
-            state.selectedTemplate.text =
-                templateText.substring(0, currentPosition) + `${trendName.name}\n` +
-                trendTag + templateText.substring(currentPosition, templateText.length);
-        }
+        const currentPosition = textArea.selectionStart;
+        const templateText = state.selectedTemplate.text;
+        state.selectedTemplate.text =
+            templateText.substring(0, currentPosition)
+            + tag
+            + templateText.substring(currentPosition, templateText.length);
+    }
 
+    const handleTrendInsert = (trendName: TrendName, fromDate: Date, toDate: Date) => {
+        const fromDateStr = dayjs(fromDate).format('YYYY-MM-DD');
+        const toDateStr = dayjs(toDate).format('YYYY-MM-DD');
+        const tag = `${trendName.name}\n{{trend ${trendName.id} '${fromDateStr}' '${toDateStr}'}}`;
+        insertTagToCurrentPosition(tag);
+        setInsertModalOpen(false);
+    }
+
+    const handleSpectreInsert = (malfunction: Malfunction, fromDate: Date, toDate: Date,) => {
+        const fromDateStr = dayjs(fromDate).format('YYYY-MM-DD');
+        const toDateStr = dayjs(toDate).format('YYYY-MM-DD');
+        const channelName = `Тренд спектра для ${malfunction.text}:(${malfunction.channel})`;
+        const tag = `${channelName}\n{{spectre-trend ${malfunction.id} '${fromDateStr}' '${toDateStr}'}}`;
+        insertTagToCurrentPosition(tag);
         setInsertModalOpen(false);
     }
 
@@ -160,7 +171,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = observer((props) => {
                 minions={minions.value}
                 open={isInsertModalOpen}
                 onClose={() => setInsertModalOpen(false)}
-                onInsert={handleInsert}
+                onTrendInsert={handleTrendInsert}
+                onSpectreTrendInsert={handleSpectreInsert}
             />
             {selectedTemplate && (
                 <TemplateListModal
