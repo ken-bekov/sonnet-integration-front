@@ -29,7 +29,10 @@ export const ResultList: React.FC<ResultListProps> = (props) => {
         }
     }
 
-    const treeItems = resultSets.map(requestSetToTreeItem);
+    const treeItems = resultSets
+        .sort((a, b) => dayjs(b.create_time).diff(a.create_time, 'milliseconds'))
+        .map(requestSetToTreeItem);
+
     const requestSet = resultSets.reduce<Record<string, AiRequest>>(
         (requests, set) => {
             set.requests.forEach(request => {

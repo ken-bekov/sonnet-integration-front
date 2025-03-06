@@ -1,9 +1,9 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {observer} from "mobx-react-lite";
 import {ExecutionResultsState} from "@app/AgentTemplates/ExecutionResults/execution-results-state.ts";
 import {ResultList} from "@app/AgentTemplates/ExecutionResults/ResultList/ResultList.tsx";
 import { useStyles } from "./ExecutionResults.styles";
-import {Button} from "@mui/material";
+import {Button, Tab, Tabs} from "@mui/material";
 
 interface ExecutionResultsProps {
     state: ExecutionResultsState;
@@ -13,6 +13,7 @@ export const ExecutionResults: React.FC<ExecutionResultsProps> = observer((props
     const {state} = props;
     const {requestSets, agent, selectedRequest} = state;
     const styles = useStyles();
+    const [currentTab, setCurrentTab] = useState('response');
 
     useEffect(() => {
         if (requestSets) {
@@ -24,6 +25,10 @@ export const ExecutionResults: React.FC<ExecutionResultsProps> = observer((props
         if (requestSets) {
             state.loadRequestSets();
         }
+    }
+
+    const handleChangeTab = (_: React.SyntheticEvent, value: string) => {
+        setCurrentTab(value);
     }
 
     return (
@@ -42,10 +47,34 @@ export const ExecutionResults: React.FC<ExecutionResultsProps> = observer((props
             </div>
             <div className={styles.content}>
                 {!!selectedRequest && (
-                    <textarea
-                        className={styles.textArea}
-                        value={selectedRequest.response} readOnly
-                    />
+                    <>
+                        <Tabs onChange={handleChangeTab} value={currentTab}>
+                            <Tab label='Ответ' value='response'/>
+                            <Tab label='Промпт' value='propmt'/>
+                            <Tab label='Ошибки' value='errors'/>
+                        </Tabs>
+                        {currentTab === 'response' && (
+                            <textarea
+                                className={styles.textArea}
+                                value={selectedRequest.response}
+                                readOnly
+                            />
+                        )}
+                        {currentTab === 'propmt' && (
+                            <textarea
+                                className={styles.textArea}
+                                value={selectedRequest.prompt}
+                                readOnly
+                            />
+                        )}
+                        {currentTab === 'errors' && (
+                            <textarea
+                                className={styles.textArea}
+                                value={selectedRequest.error}
+                                readOnly
+                            />
+                        )}
+                    </>
                 )}
             </div>
         </div>
