@@ -2,6 +2,7 @@ import React, {SyntheticEvent} from "react";
 import {AiRequest, AiRequestSet} from "@app/api/request-api.ts";
 import {RichTreeView, TreeViewBaseItem} from "@mui/x-tree-view";
 import dayjs from "dayjs";
+import {useStyles} from "./ResultList.styles.ts";
 
 interface ResultListProps {
     resultSets: AiRequestSet[];
@@ -11,6 +12,7 @@ interface ResultListProps {
 
 export const ResultList: React.FC<ResultListProps> = (props) => {
     const {resultSets, onSelectedChange, selectedRequest} = props;
+    const classes = useStyles();
 
     const requestToTreeItem = (request: AiRequest): TreeViewBaseItem => {
         return {
@@ -48,10 +50,13 @@ export const ResultList: React.FC<ResultListProps> = (props) => {
     }
 
     return (
-        <RichTreeView
-            items={treeItems}
-            onSelectedItemsChange={handleSelectedItemChange}
-            selectedItems={selectedRequest ? `request-${selectedRequest.id}` : null}
-        />
+        <div className={classes.treeView}>
+            <RichTreeView
+                items={treeItems}
+                onSelectedItemsChange={handleSelectedItemChange}
+                selectedItems={selectedRequest ? `request-${selectedRequest.id}` : null}
+
+            />
+        </div>
     )
 }

@@ -7,7 +7,7 @@ import {ThemeProvider} from "@emotion/react";
 import {useApplicationState} from "@app/state/application-state.ts";
 import {observer} from "mobx-react-lite";
 import {MessageStack} from "@app/common/MessageStack/MessageStack.tsx";
-import {applicationStyles} from "@app/App.styles.ts";
+import {getApplicationStyles} from "@app/App.styles.ts";
 import {BrowserRouter, Route, Routes} from "react-router";
 import {AgentTemplates} from "@app/AgentTemplates/AgentTemplates.tsx";
 
@@ -25,6 +25,8 @@ function App() {
     const {
         messageStackState,
     } = useApplicationState();
+
+    const applicationStyles = getApplicationStyles(mainTheme);
 
     return (
         <div className={applicationStyles}>

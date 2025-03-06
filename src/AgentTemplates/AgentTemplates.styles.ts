@@ -13,6 +13,7 @@ export const useStyles = () => {
         container: css`
             padding: 16px 0;
             flex-grow: 1;
+            min-height: 0;
         `,
         header:css`
             padding: 12px;
