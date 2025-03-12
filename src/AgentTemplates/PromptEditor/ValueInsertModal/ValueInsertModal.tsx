@@ -15,6 +15,9 @@ import {AutocompleteChangeReason} from "@mui/material/useAutocomplete/useAutocom
 import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {Dayjs} from "dayjs";
+import {
+    MalfunctionChannelSelector
+} from "@app/AgentTemplates/PromptEditor/ValueInsertModal/MalfunctionChannelSelector/MalfunctionChannelSelector.tsx";
 
 interface ValueInsertModalProps {
     open: boolean;
@@ -163,6 +166,23 @@ export const ValueInsertModal: React.FC<ValueInsertModalProps> = (props) => {
         return [];
     }
 
+    const getMalfunctions = () => {
+        const minion = getSelectedMinion();
+        return minion?.dependentMalfunctions || [];
+    }
+
+    const handleMalfunctionChange = (malfunction: Malfunction | null) => {
+        const channel: Channel | null = malfunction
+            ? {
+                id: malfunction.id,
+                label: `${malfunction.text} [${malfunction.name}]`,
+                channel: malfunction,
+            }
+            : null;
+
+        setSelectedChannel(channel);
+    }
+
     return (
         <Dialog open={open} onClose={onClose}>
             <DialogTitle>Параметр для вставки</DialogTitle>
@@ -196,15 +216,23 @@ export const ValueInsertModal: React.FC<ValueInsertModalProps> = (props) => {
                                 value={selectedMetric}
                                 size="small"
                             />
-                            <Autocomplete
-                                renderInput={(params) => <TextField {...params} label="Название канала"/>}
-                                options={getChannels() || []}
-                                getOptionLabel={(option) => option.label}
-                                getOptionKey={(option) => option.id}
-                                size="small"
-                                value={selectedChannel}
-                                onChange={handleSelectedChannelChange}
-                            />
+                            {selectedMetric?.id === 'trends' && (
+                                <Autocomplete
+                                    renderInput={(params) => <TextField {...params} label="Название канала"/>}
+                                    options={getChannels() || []}
+                                    getOptionLabel={(option) => option.label}
+                                    getOptionKey={(option) => option.id}
+                                    size="small"
+                                    value={selectedChannel}
+                                    onChange={handleSelectedChannelChange}
+                                />
+                            )}
+                            {selectedMetric?.id === 'spectre-trends' && (
+                                <MalfunctionChannelSelector
+                                    malfunctions={getMalfunctions()}
+                                    onMalfunctionChange={handleMalfunctionChange}
+                                />
+                            )}
                         </>
                     )}
                 </div>

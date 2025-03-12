@@ -92,7 +92,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = observer((props) => {
     const handleSpectreInsert = (malfunction: Malfunction, fromDate: Date, toDate: Date,) => {
         const fromDateStr = dayjs(fromDate).format('YYYY-MM-DD');
         const toDateStr = dayjs(toDate).format('YYYY-MM-DD');
-        const channelName = `Тренд спектра для ${malfunction.text}:(${malfunction.channel})`;
+        const channelName = `Тренд спектра для ${malfunction.text} (${malfunction.type}:${malfunction.channel}:${malfunction.name})`;
         const tag = `${channelName}\n{{spectre-trend ${malfunction.id} '${fromDateStr}' '${toDateStr}'}}`;
         insertTagToCurrentPosition(tag);
         setInsertModalOpen(false);
