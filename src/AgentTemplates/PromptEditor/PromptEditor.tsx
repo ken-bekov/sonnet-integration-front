@@ -9,7 +9,6 @@ import {Button, Menu, MenuItem} from "@mui/material";
 import {useApplicationState} from "@app/state/application-state.ts";
 import {ValueInsertModal} from "./ValueInsertModal/ValueInsertModal";
 import {AiQueryTemplate, Malfunction, TrendName} from "@app/api/types.ts";
-import dayjs from "dayjs";
 import {KeyboardArrowDown} from '@mui/icons-material';
 import {TemplateListModal} from "@app/AgentTemplates/TemplateListModal/TemplateListModal.tsx";
 
@@ -81,19 +80,15 @@ export const PromptEditor: React.FC<PromptEditorProps> = observer((props) => {
             + templateText.substring(currentPosition, templateText.length);
     }
 
-    const handleTrendInsert = (trendName: TrendName, fromDate: Date, toDate: Date) => {
-        const fromDateStr = dayjs(fromDate).format('YYYY-MM-DD');
-        const toDateStr = dayjs(toDate).format('YYYY-MM-DD');
-        const tag = `${trendName.name}\n{{trend ${trendName.id} '${fromDateStr}' '${toDateStr}'}}`;
+    const handleTrendInsert = (trendName: TrendName, fromDate: string, toDate: string, interval: number) => {
+        const tag = `${trendName.name}\n{{trend ${trendName.id} ${fromDate} ${toDate} ${interval}}}`;
         insertTagToCurrentPosition(tag);
         setInsertModalOpen(false);
     }
 
-    const handleSpectreInsert = (malfunction: Malfunction, fromDate: Date, toDate: Date,) => {
-        const fromDateStr = dayjs(fromDate).format('YYYY-MM-DD');
-        const toDateStr = dayjs(toDate).format('YYYY-MM-DD');
+    const handleSpectreInsert = (malfunction: Malfunction, fromDate: string, toDate: string, interval: number) => {
         const channelName = `Тренд спектра для ${malfunction.text} (${malfunction.type}:${malfunction.channel}:${malfunction.name})`;
-        const tag = `${channelName}\n{{spectre-trend ${malfunction.id} '${fromDateStr}' '${toDateStr}'}}`;
+        const tag = `${channelName}\n{{spectre-trend ${malfunction.id} ${fromDate} ${toDate} ${interval}}}`;
         insertTagToCurrentPosition(tag);
         setInsertModalOpen(false);
     }

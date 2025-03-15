@@ -6,54 +6,37 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
-    DialogTitle,
+    DialogTitle, FormControlLabel, Radio, RadioGroup,
     TextField
 } from "@mui/material";
-import {css} from "@emotion/css";
 import {Malfunction, Minion, MinionTypeNames, TrendName} from "@app/api/types.ts";
 import {AutocompleteChangeReason} from "@mui/material/useAutocomplete/useAutocomplete";
 import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
-import {Dayjs} from "dayjs";
+import dayjs, {Dayjs} from "dayjs";
 import {
     MalfunctionChannelSelector
 } from "@app/AgentTemplates/PromptEditor/ValueInsertModal/MalfunctionChannelSelector/MalfunctionChannelSelector.tsx";
+import {useStyles} from "@app/AgentTemplates/PromptEditor/ValueInsertModal/ValueInsertModal.styles.tsx";
 
 interface ValueInsertModalProps {
     open: boolean;
     onClose: () => void;
     onTrendInsert: (
         trendName: TrendName,
-        fromDate: Date,
-        toDate: Date,
+        fromDate: string,
+        toDate: string,
+        interval: number,
     ) => void;
     onSpectreTrendInsert: (
         spectreTrend: Malfunction,
-        fromDate: Date,
-        toDate: Date,
+        fromDate: string,
+        toDate: string,
+        interval: number,
     ) => void;
     minions?: Minion[];
     loading: boolean;
 }
-
-const contentContainerStyles = css`
-    width: 500px;
-    padding: 16px 0;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-`;
-
-const progressStyles = css`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-`
-
-const datesContainerStyles = css`
-    display: flex;
-    justify-content: space-between;
-`
 
 interface Metric {
     id: string;
@@ -68,8 +51,12 @@ interface Channel {
 
 export const ValueInsertModal: React.FC<ValueInsertModalProps> = (props) => {
     const {open, onClose, minions, loading, onTrendInsert, onSpectreTrendInsert} = props;
-    const [fromDate, setFromDate] = useState<Dayjs | null>(null);
-    const [toDate, setToDate] = useState<Dayjs | null>(null);
+    const [fromDate, setFromDate] = useState<Dayjs | null>(dayjs().subtract(3, 'day'));
+    const [toDate, setToDate] = useState<Dayjs | null>(dayjs());
+    const [lastDays, setLastDays] = useState(3);
+    const [period, setPeriod] = useState('any');
+    const [resampleInterval, setResampleInterval] = useState<number>(30);
+    const classes = useStyles();
 
     const metrics: Metric[] = [
         {id: 'trends', label: 'Тренды'},
@@ -109,24 +96,33 @@ export const ValueInsertModal: React.FC<ValueInsertModalProps> = (props) => {
             selectedMetric?.id === 'trends'
             || selectedMetric?.id === 'spectre-trends'
         ) {
-            return  minions.find(minion => minion.type.name === MinionTypeNames.Trend);
+            return minions.find(minion => minion.type.name === MinionTypeNames.Trend);
         }
     }
 
     const handleOnInsertClick = () => {
+        const fromParam = period === 'any'
+            ? `'${(fromDate || dayjs()).format('YYYY-MM-DD')}'`
+            : `(daysAgoToDate ${lastDays})`;
+        const toParam = period === 'any'
+            ? `'${(toDate || dayjs()).format('YYYY-MM-DD')}'`
+            : `(daysAgoToDate ${0})`;
+
         if (selectedMetric?.id === 'trends' && selectedChannel) {
             onTrendInsert(
                 selectedChannel?.channel as TrendName,
-                fromDate?.toDate() || new Date(),
-                toDate?.toDate() || new Date()
+                fromParam,
+                toParam,
+                resampleInterval,
             );
         }
 
         if (selectedMetric?.id === 'spectre-trends' && selectedChannel) {
             onSpectreTrendInsert(
                 selectedChannel?.channel as Malfunction,
-                fromDate?.toDate() || new Date(),
-                toDate?.toDate() || new Date(),
+                fromParam,
+                toParam,
+                resampleInterval,
             );
         }
     }
@@ -187,26 +183,64 @@ export const ValueInsertModal: React.FC<ValueInsertModalProps> = (props) => {
         <Dialog open={open} onClose={onClose}>
             <DialogTitle>Параметр для вставки</DialogTitle>
             <DialogContent>
-                <div className={contentContainerStyles}>
+                <div className={classes.contentContainer}>
                     {loading && (
-                        <div className={progressStyles}>
+                        <div className={classes.progress}>
                             <CircularProgress/>
                         </div>
                     )}
                     {!loading && (
                         <>
-                            <div className={datesContainerStyles}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <DatePicker
-                                        value={fromDate}
-                                        onChange={(dayjs) => setFromDate(dayjs)}
+                            <div className={classes.periodSection}>
+                                <RadioGroup className={classes.radioContainer}>
+                                    <FormControlLabel
+                                        control={<Radio checked={period === 'any'}/>}
+                                        label='Произвольный период'
+                                        onChange={(_, checked)=> checked && setPeriod('any')}
                                     />
-                                    <DatePicker
-                                        value={toDate}
-                                        onChange={(dayjs) => setToDate(dayjs)}
+                                    <FormControlLabel
+                                        control={<Radio checked={period === 'lastDays'}/>}
+                                        label='За N последних дней'
+                                        onChange={(_, checked)=> checked && setPeriod('lastDays')}
                                     />
-                                </LocalizationProvider>
+                                </RadioGroup>
+                                {period === 'any' && (
+                                    <div className={classes.datesContainer}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                            <DatePicker
+                                                label='От'
+                                                value={dayjs(fromDate)}
+                                                onChange={(dayjs) => setFromDate(dayjs)}
+                                                className={classes.smallEditor}
+                                            />
+                                            <DatePicker
+                                                label='До'
+                                                value={dayjs(toDate)}
+                                                onChange={(dayjs) => setToDate(dayjs)}
+                                                className={classes.smallEditor}
+                                            />
+                                        </LocalizationProvider>
+                                    </div>
+                                )}
+                                {period === 'lastDays' && (
+                                    <TextField
+                                        type='number'
+                                        label='Количество дней'
+                                        value={lastDays}
+                                        onChange={(event) => setLastDays(+event.target.value || 0)}
+                                        className={classes.smallEditor}
+                                        style={{maxWidth: '245px'}}
+                                    />
+                                )}
                             </div>
+                            <TextField
+                                type='number'
+                                label='Ресемплинг (мин)'
+                                value={resampleInterval}
+                                onChange={(event) => setResampleInterval(+event.target.value)}
+                                className={classes.smallEditor}
+                                style={{maxWidth: '245px'}}
+                            />
                             <Autocomplete
                                 renderInput={(params) => <TextField {...params} label="Название параметра"/>}
                                 options={metrics}
