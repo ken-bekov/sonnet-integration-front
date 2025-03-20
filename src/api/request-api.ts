@@ -18,6 +18,14 @@ export interface AiRequestSet {
     agentId: number;
     requests: AiRequest[];
     create_time: Date;
+    state: AiRequestSetStatus;
+    error: string;
+}
+
+export enum AiRequestSetStatus {
+    processing = 'processing',
+    done = 'done',
+    error = 'error',
 }
 
 export const runQuerySet = async (agentId: number) => {

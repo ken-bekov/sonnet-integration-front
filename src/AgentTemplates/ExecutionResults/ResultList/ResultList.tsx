@@ -6,12 +6,13 @@ import {useStyles} from "./ResultList.styles.ts";
 
 interface ResultListProps {
     resultSets: AiRequestSet[];
-    selectedRequest: AiRequest | null;
-    onSelectedChange: (selectedResult: AiRequest | null) => void;
+    selectedResult: AiRequest | AiRequestSet | null;
+    onSelectResult: (selectedRequest: AiRequest | null) => void;
+    onSelectSet: (selectedSet: AiRequestSet | null) => void;
 }
 
 export const ResultList: React.FC<ResultListProps> = (props) => {
-    const {resultSets, onSelectedChange, selectedRequest} = props;
+    const {resultSets, onSelectResult, onSelectSet, selectedResult} = props;
     const classes = useStyles();
 
     const requestToTreeItem = (request: AiRequest): TreeViewBaseItem => {
@@ -33,7 +34,7 @@ export const ResultList: React.FC<ResultListProps> = (props) => {
         .sort((a, b) => dayjs(b.create_time).diff(a.create_time, 'milliseconds'))
         .map(requestSetToTreeItem);
 
-    const requestSet = resultSets.reduce<Record<string, AiRequest>>(
+    const resultMap = resultSets.reduce<Record<string, AiRequest>>(
         (requests, set) => {
             set.requests.forEach(request => {
                 requests[`request-${request.id}`] = request;
@@ -44,11 +45,19 @@ export const ResultList: React.FC<ResultListProps> = (props) => {
     )
 
     const handleSelectedItemChange = (_: SyntheticEvent, id: string | null) => {
-        if (id) {
-            const request = requestSet[id];
-            onSelectedChange(request);
-        } else {
-            onSelectedChange(null);
+        if (id?.startsWith('request-')) {
+            const result = resultMap[id];
+            if (result) {
+                onSelectResult(result);
+            }
+            return;
+        }
+
+        if (id?.startsWith('set-')) {
+            const set = resultSets.find(set => `set-${set.id}` === id);
+            if (set) {
+                onSelectSet(set);
+            }
         }
     }
 
@@ -57,8 +66,7 @@ export const ResultList: React.FC<ResultListProps> = (props) => {
             <RichTreeView
                 items={treeItems}
                 onSelectedItemsChange={handleSelectedItemChange}
-                selectedItems={selectedRequest ? `request-${selectedRequest.id}` : null}
-
+                selectedItems={selectedResult ? `request-${selectedResult.id}` : null}
             />
         </div>
     )
