@@ -11,6 +11,7 @@ import {ValueInsertModal} from "./ValueInsertModal/ValueInsertModal";
 import {AiQueryTemplate, Malfunction, TrendName} from "@app/api/types.ts";
 import {KeyboardArrowDown} from '@mui/icons-material';
 import {TemplateListModal} from "@app/AgentTemplates/TemplateListModal/TemplateListModal.tsx";
+import {AI_HOST_URL} from "@app/common/globals.ts";
 
 interface PromptEditorProps {
     state: PromptEditorState;
@@ -64,6 +65,33 @@ export const PromptEditor: React.FC<PromptEditorProps> = observer((props) => {
         (async () => {
             await state.executeTemplates();
         })();
+    }
+
+    const handleDownloadClick = async () => {
+        try {
+            const rawAgent = JSON.parse(JSON.stringify(state.agent));
+            const fileName = `report_${rawAgent.id}.pdf`;
+            const url = `${AI_HOST_URL}/download/${fileName}`;
+        
+            const response = await fetch(url);
+        
+            if (!response.ok) {
+                throw new Error(`Ошибка при скачивании файла: ${response.statusText}`);
+            }
+        
+            const blob = await response.blob();
+        
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = fileName;
+        
+            document.body.appendChild(link);
+            link.click();
+        
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error('❌ Ошибка при скачивании PDF:', error);
+        }
     }
 
     const insertTagToCurrentPosition = (tag: string) => {
@@ -150,6 +178,11 @@ export const PromptEditor: React.FC<PromptEditorProps> = observer((props) => {
                                 onClick={handleExecuteClick}
                             >
                                 Запустить
+                            </Button>
+                            <Button
+                                onClick={handleDownloadClick}
+                            >
+                                Скачать PDF
                             </Button>
                         </div>
                         <textarea
